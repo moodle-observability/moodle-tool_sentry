@@ -10,6 +10,12 @@ Simple sentry plugin to moodle.
 Documentation (English and Brazilian Portuguese), with a feature comparison against `tool_otel`:
 https://moodle-observability.github.io/moodle-tool_sentry/
 
+Part of [Moodle Observability](https://github.com/moodle-observability), a family of observability plugins for
+Moodle. The [organization page](https://github.com/moodle-observability) lists the other plugins and the
+[roadmap](https://github.com/moodle-observability#roadmap); the [portal](https://moodle-observability.github.io/) links
+to each plugin's documentation. Contributions follow the
+[organization contributing guide](https://github.com/moodle-observability/.github/blob/main/CONTRIBUTING.md).
+
 | Plugin version | Moodle | PHP |
 | --- | --- | --- |
 | 5.3.x (branch `TOOL_SENTRY_5_3`) | 5.3 | 8.3+ |
