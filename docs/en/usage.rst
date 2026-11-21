@@ -31,7 +31,7 @@ What reaches Sentry
      - ✅
      - ❌
    * - Transactions and profiles, when tracing is on.
-     - ✅ Only what the SDK creates on its own; the plugin creates no Moodle spans.
+     - ⚠️ Only what the SDK creates on its own; the plugin creates no Moodle spans.
      - ✅ Planned: spans for requests, database, ``curl``, web services and tasks.
 
 Error page with the event id
