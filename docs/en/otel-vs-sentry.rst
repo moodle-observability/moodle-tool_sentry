@@ -36,6 +36,17 @@ Where the two overlap
 * **Distributed traces and performance**: both do it.
 * The Sentry SDKs (JavaScript from v8, Python) already use OpenTelemetry internally, and Sentry accepts OTLP ingestion. That is why ``tool_otel`` can export traces to Sentry.
 
+Sentry accepts OTLP: does it replace OpenTelemetry?
+---------------------------------------------------
+
+No. As a ready-made product for errors and APM, Sentry is much more complete. As observability coverage, it is not, and accepting OTLP does not make Sentry contain OpenTelemetry.
+
+* **Sentry is one possible destination**: it receives the traces (and logs) that OpenTelemetry produces, but it does not play the role of OpenTelemetry. There is no Collector, no infrastructure metrics and no sending to several backends, and the telemetry is locked into Sentry.
+* **Data that arrives through OTLP gives less**: it brings no breadcrumbs, local variables, source maps or the rich issue grouping. Those come from Sentry's own SDKs.
+* **The plugins complement each other**: ``tool_sentry`` handles errors, with details that OpenTelemetry does not have; ``tool_otel`` will handle Moodle performance spans (database, ``curl``, tasks), which ``tool_sentry`` does not create. The ``tool_otel`` traces can go to Sentry itself through OTLP.
+
+In short: Sentry is more complete as a **destination**; OpenTelemetry is what **produces and transports** the telemetry. Neither replaces the other.
+
 Recommended combination for Moodle
 ----------------------------------
 
