@@ -3,6 +3,11 @@ Sentry is a Open Source, Self-hosted and cloud-based application performance mon
 # tool_sentry
 Simple sentry plugin to moodle.
 
+[![Documentation](https://github.com/moodle-observability/moodle-tool_sentry/actions/workflows/docs.yml/badge.svg)](https://github.com/moodle-observability/moodle-tool_sentry/actions/workflows/docs.yml)
+
+Documentation (English and Brazilian Portuguese), with a feature comparison against `tool_otel`:
+https://moodle-observability.github.io/moodle-tool_sentry/
+
 | Plugin version | Moodle | PHP |
 | --- | --- | --- |
 | 5.3.x (branch `TOOL_SENTRY_5_3`) | 5.3 | 8.3+ |
