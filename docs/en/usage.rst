@@ -26,13 +26,13 @@ What reaches Sentry
      - ❌
    * - Errors of scheduled and adhoc tasks, with the ``task`` context (URL ``cron://<host>/task/<component>/<class>``) and the ``task_type``, ``task_class``, ``task_component``, ``task_id`` and ``task_logid`` tags.
      - ✅
-     - ✅ Planned, as task spans.
+     - ✅ Task spans, with ``$CFG->task_log_class``.
    * - Browser JavaScript errors, when the JavaScript Loader is configured.
      - ✅
      - ❌
    * - Transactions and profiles, when tracing is on.
      - ⚠️ Only what the SDK creates on its own; the plugin creates no Moodle spans.
-     - ✅ Planned: spans for requests, database, ``curl``, web services and tasks.
+     - ⚠️ Partial: spans for requests, web services and tasks, database aggregates per request; no ``curl`` spans.
 
 Error page with the event id
 ----------------------------

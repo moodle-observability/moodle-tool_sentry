@@ -3,7 +3,7 @@ Configuration
 
 The plugin has two modes. The prepend mode wins when it is configured; otherwise the plugin mode is used.
 
-The ``tool_otel`` column of the tables shows whether the `moodle-tool_otel <https://moodle-observability.github.io/moodle-tool_otel/>`_ plugin has an equivalent planned setting.
+The ``tool_otel`` column of the tables shows whether the `moodle-tool_otel <https://moodle-observability.github.io/moodle-tool_otel/>`_ plugin has an equivalent setting.
 
 Plugin mode (default)
 ---------------------
@@ -105,7 +105,7 @@ In this mode the plugin does not start the SDK again and ignores the PHP options
    * - ``SENTRY_DSN``
      -
      - DSN of the project. Required.
-     - ❌ Environment variables not planned.
+     - ✅ ``OTEL_EXPORTER_OTLP_ENDPOINT`` and the other ``OTEL_*`` variables.
    * - ``SENTRY_ENVIRONMENT``
      - ``production``
      - Environment name.

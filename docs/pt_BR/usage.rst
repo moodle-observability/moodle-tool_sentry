@@ -26,13 +26,13 @@ O que chega ao Sentry
      - ❌
    * - Erros de tarefas agendadas e adhoc, com o contexto ``task`` (URL ``cron://<host>/task/<componente>/<classe>``) e as tags ``task_type``, ``task_class``, ``task_component``, ``task_id`` e ``task_logid``.
      - ✅
-     - ✅ Previsto, como spans de tarefas.
+     - ✅ Spans de tarefas, com ``$CFG->task_log_class``.
    * - Erros de JavaScript do navegador, quando o JavaScript Loader está configurado.
      - ✅
      - ❌
    * - Transações e profiles, quando o tracing está ativo.
      - ⚠️ Só o que o SDK cria sozinho; o plugin não cria spans do Moodle.
-     - ✅ Previsto: spans de requisições, banco, ``curl``, web services e tarefas.
+     - ⚠️ Parcial: spans de requisições, web services e tarefas, agregados do banco por requisição; sem spans de ``curl``.
 
 Página de erro com o id do evento
 ---------------------------------
