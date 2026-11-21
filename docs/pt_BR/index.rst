@@ -36,28 +36,28 @@ A coluna ``tool_otel`` indica se o plugin `moodle-tool_otel <https://moodle-obse
      - ✅
      - ❌
    * - Tracing de desempenho.
-     - ✅ Parcial: ativa o tracing do SDK (``enable_tracing``, ``traces_sample_rate``), sem spans do Moodle.
+     - ⚠️ Parcial: ativa o tracing do SDK (``enable_tracing``, ``traces_sample_rate``), sem spans do Moodle.
      - ✅ Previsto: spans de requisições, consultas ao banco, chamadas ``curl``, web services e tarefas.
    * - Profiling (``profiles_sample_rate``).
-     - ✅ Depende do tracing do SDK.
+     - ⚠️ Depende do tracing do SDK.
      - ❌
    * - Envio para o Sentry (sentry.io ou self-hosted).
      - ✅
-     - ✅ Previsto, só traces, via OTLP.
+     - ⚠️ Previsto, só traces, via OTLP.
    * - Envio para outros backends (Jaeger, Grafana Tempo e outros compatíveis com OTLP).
      - ❌
      - ✅ Previsto.
    * - Proteção de dados: valores de parâmetros sensíveis (``token``, ``password``, ``sesskey``...) trocados por ``[Filtered]`` e nenhum dado pessoal por padrão.
-     - ✅ No modo prepend.
+     - ⚠️ Só no modo prepend.
      - ✅ Previsto: spans sem dados pessoais e sem valores de parâmetros SQL.
    * - Id do evento capturado no header ``X-Sentry-Event-Id`` da resposta, para a página de erro do servidor web.
-     - ✅ No modo prepend.
+     - ⚠️ Só no modo prepend.
      - ❌
    * - Botão de teste de conexão (*Send Exception*) na página de configuração.
      - ✅
      - ❌
 
-Legenda: ✅ disponível (ou previsto, quando indicado); ❌ não oferecido.
+Legenda: ✅ disponível (ou previsto, quando indicado); ⚠️ parcial ou só na condição indicada; ❌ não oferecido.
 
 Requisitos
 ----------

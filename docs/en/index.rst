@@ -36,28 +36,28 @@ The ``tool_otel`` column shows whether the `moodle-tool_otel <https://moodle-obs
      - ✅
      - ❌
    * - Performance tracing.
-     - ✅ Partial: enables SDK tracing (``enable_tracing``, ``traces_sample_rate``), without Moodle spans.
+     - ⚠️ Partial: enables SDK tracing (``enable_tracing``, ``traces_sample_rate``), without Moodle spans.
      - ✅ Planned: spans for requests, database queries, ``curl`` calls, web services and tasks.
    * - Profiling (``profiles_sample_rate``).
-     - ✅ Depends on SDK tracing.
+     - ⚠️ Depends on SDK tracing.
      - ❌
    * - Sending to Sentry (sentry.io or self-hosted).
      - ✅
-     - ✅ Planned, traces only, through OTLP.
+     - ⚠️ Planned, traces only, through OTLP.
    * - Sending to other backends (Jaeger, Grafana Tempo and other OTLP-compatible backends).
      - ❌
      - ✅ Planned.
    * - Data protection: values of sensitive parameters (``token``, ``password``, ``sesskey``...) replaced with ``[Filtered]`` and no personal data by default.
-     - ✅ In prepend mode.
+     - ⚠️ In prepend mode only.
      - ✅ Planned: spans without personal data and without SQL parameter values.
    * - Id of the captured event in the ``X-Sentry-Event-Id`` response header, for the web server error page.
-     - ✅ In prepend mode.
+     - ⚠️ In prepend mode only.
      - ❌
    * - Connection test button (*Send Exception*) on the settings page.
      - ✅
      - ❌
 
-Legend: ✅ available (or planned, when stated); ❌ not offered.
+Legend: ✅ available (or planned, when stated); ⚠️ partial or only under the stated condition; ❌ not offered.
 
 Requirements
 ------------
