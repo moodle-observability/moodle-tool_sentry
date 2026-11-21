@@ -1,3 +1,5 @@
+<img src="docs/logo/logo.svg" alt="moodle-tool_sentry logo" width="96" align="right" />
+
 # SENTRY
 Sentry is a Open Source, Self-hosted and cloud-based application performance monitoring & error tracking that helps software teams see clearer, solve quicker, & learn continuously. Disponible in sentry.io.
 # tool_sentry
