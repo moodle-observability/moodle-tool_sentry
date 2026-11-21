@@ -8,7 +8,7 @@ Envia erros, exceções e dados de desempenho do Moodle para o `Sentry <https://
 Funcionalidades
 ---------------
 
-A coluna ``tool_otel`` indica se o plugin `moodle-tool_otel <https://moodle-observability.github.io/moodle-tool_otel/>`_ (tracing com OpenTelemetry, em fase de pesquisa) também oferece a funcionalidade. Veja o comparativo completo em :doc:`otel-vs-sentry`.
+A coluna ``tool_otel`` indica se o plugin `moodle-tool_otel <https://moodle-observability.github.io/moodle-tool_otel/>`_ (tracing com OpenTelemetry, versão 0.1.0) também oferece a funcionalidade. Veja o comparativo completo em :doc:`otel-vs-sentry`.
 
 .. list-table::
    :header-rows: 1
@@ -31,25 +31,25 @@ A coluna ``tool_otel`` indica se o plugin `moodle-tool_otel <https://moodle-obse
      - ❌
    * - Contexto de tarefas agendadas e adhoc (tipo, classe, componente, id e log da tarefa).
      - ✅ Nos erros.
-     - ✅ Previsto, como spans de tarefas.
+     - ✅ Spans de tarefas, com ``$CFG->task_log_class``.
    * - Erros de JavaScript do navegador, pelo JavaScript Loader do Sentry.
      - ✅
      - ❌
    * - Tracing de desempenho.
      - ⚠️ Parcial: ativa o tracing do SDK (``enable_tracing``, ``traces_sample_rate``), sem spans do Moodle.
-     - ✅ Previsto: spans de requisições, consultas ao banco, chamadas ``curl``, web services e tarefas.
+     - ⚠️ Parcial: spans de requisições, web services e tarefas, agregados do banco por requisição; sem spans de ``curl``.
    * - Profiling (``profiles_sample_rate``).
      - ⚠️ Depende do tracing do SDK.
      - ❌
    * - Envio para o Sentry (sentry.io ou self-hosted).
      - ✅
-     - ⚠️ Previsto, só traces, via OTLP.
+     - ⚠️ Só traces, via OTLP.
    * - Envio para outros backends (Jaeger, Grafana Tempo e outros compatíveis com OTLP).
      - ❌
-     - ✅ Previsto.
+     - ✅
    * - Proteção de dados: valores de parâmetros sensíveis (``token``, ``password``, ``sesskey``...) trocados por ``[Filtered]`` e nenhum dado pessoal por padrão.
      - ⚠️ Só no modo prepend.
-     - ✅ Previsto: spans sem dados pessoais e sem valores de parâmetros SQL.
+     - ✅ Spans sem dados pessoais e sem query strings; hook ``redact_span``.
    * - Id do evento capturado no header ``X-Sentry-Event-Id`` da resposta, para a página de erro do servidor web.
      - ⚠️ Só no modo prepend.
      - ❌
@@ -57,7 +57,7 @@ A coluna ``tool_otel`` indica se o plugin `moodle-tool_otel <https://moodle-obse
      - ✅
      - ❌
 
-Legenda: ✅ disponível (ou previsto, quando indicado); ⚠️ parcial ou só na condição indicada; ❌ não oferecido.
+Legenda: ✅ disponível; ⚠️ parcial ou só na condição indicada; ❌ não oferecido.
 
 Requisitos
 ----------

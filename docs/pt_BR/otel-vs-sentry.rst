@@ -43,7 +43,7 @@ Não. Como produto pronto para erros e APM, o Sentry é bem mais completo. Como 
 
 * **O Sentry é um destino possível**: ele recebe os traces (e logs) que o OpenTelemetry gera, mas não faz o papel do OpenTelemetry. Não há Collector, métricas de infraestrutura nem envio para vários backends, e a telemetria fica presa ao Sentry.
 * **Dados que chegam via OTLP rendem menos**: não trazem breadcrumbs, variáveis locais, source maps nem o agrupamento rico de issues. Isso vem dos SDKs do próprio Sentry.
-* **Os plugins se completam**: o ``tool_sentry`` cuida dos erros, com detalhes que o OpenTelemetry não tem; o ``tool_otel`` vai cuidar dos spans de desempenho do Moodle (banco, ``curl``, tarefas), que o ``tool_sentry`` não cria. Os traces do ``tool_otel`` podem ir para o próprio Sentry via OTLP.
+* **Os plugins se completam**: o ``tool_sentry`` cuida dos erros, com detalhes que o OpenTelemetry não tem; o ``tool_otel`` cuida dos spans de desempenho do Moodle (requisições, tarefas, web services e agregados do banco), que o ``tool_sentry`` não cria. Os traces do ``tool_otel`` podem ir para o próprio Sentry via OTLP.
 
 Resumo: o Sentry é mais completo como **destino**; o OpenTelemetry é o que **gera e transporta** a telemetria. Um não substitui o outro.
 
