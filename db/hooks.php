@@ -29,4 +29,8 @@ $callbacks = [
         'hook' => \core\hook\after_config::class,
         'callback' => [\tool_sentry\hook_callbacks::class, 'after_config'],
     ],
+    [
+        'hook' => \core\hook\output\before_standard_head_html_generation::class,
+        'callback' => [\tool_sentry\hook_callbacks::class, 'before_standard_head_html_generation'],
+    ],
 ];

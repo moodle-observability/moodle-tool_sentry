@@ -150,3 +150,32 @@ Opcional: exceções lançadas dentro de ``lib/setup.php`` (por exemplo, com o b
    }
 
 Para voltar ao modo plugin, remova o ``auto_prepend_file`` ou retire a ``SENTRY_DSN``.
+
+SDK do navegador por variáveis de ambiente
+------------------------------------------
+
+A configuração ``javascriptloader`` inicia o SDK do navegador pelo JavaScript Loader do Sentry, lido do banco. Sites configurados por variáveis de ambiente (modo prepend) podem fazer o mesmo para o navegador:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Variável
+     - Significado
+   * - ``SENTRY_JS_DSN``
+     - DSN do projeto do navegador (em geral, outro projeto que o do PHP). Obrigatória.
+   * - ``SENTRY_JS_SRC``
+     - URL do pacote do SDK (``bundle.min.js``) ou de um JavaScript Loader. Obrigatória. Pode ser um arquivo servido pelo próprio site (por exemplo ``https://moodle.example/sentry/bundle-<versão>.min.js``), para as páginas não dependerem do CDN do Sentry.
+   * - ``SENTRY_JS_SAMPLE_RATE``
+     - Fração dos erros do navegador enviados, de 0.0 a 1.0. Padrão 1.0.
+   * - ``SENTRY_ENVIRONMENT``, ``SENTRY_RELEASE``, ``SENTRY_SEND_USER_ID``
+     - Os mesmos valores usados pelo SDK do PHP.
+
+Com ``SENTRY_JS_DSN`` e ``SENTRY_JS_SRC`` definidas, o plugin acrescenta o script ao ``<head>`` de todas as páginas (hook ``before_standard_head_html_generation``) e a configuração ``javascriptloader`` não é usada.
+
+Nos dois modos, o script do navegador:
+
+* troca por ``[Filtered]`` o valor de parâmetros sensíveis das URLs (``sesskey``, ``token``, ``wstoken``, ``password``, ``key``, ``secret``, ``code``, ``ticket``), nos eventos e nas breadcrumbs, e tira cookies e cabeçalhos dos dados da requisição;
+* tira a revisão do JavaScript das pilhas (veja :doc:`grouping`);
+* ignora o ruído do navegador: falhas de rede (``Load failed``, ``Failed to fetch``), ``out of memory``, extensões, Google Analytics e Tag Manager, e webviews de Android/iOS;
+* envia só erros de scripts do site (``allowUrls`` = ``$CFG->wwwroot``), sem dados pessoais (``sendDefaultPii`` desligado); o id numérico do usuário só com ``SENTRY_SEND_USER_ID=true``.
