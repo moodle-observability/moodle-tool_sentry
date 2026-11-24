@@ -35,6 +35,9 @@ The ``tool_otel`` column shows whether the `moodle-tool_otel <https://moodle-obs
    * - Browser JavaScript errors, through the Sentry JavaScript Loader.
      - ✅
      - ❌
+   * - Stable issue grouping: browser errors without the JavaScript revision of the URLs, session lock errors without the session id (:doc:`grouping`).
+     - ✅
+     - ❌
    * - Performance tracing.
      - ⚠️ Partial: enables SDK tracing (``enable_tracing``, ``traces_sample_rate``), without Moodle spans.
      - ⚠️ Partial: spans for requests, web services and tasks, database aggregates per request; no ``curl`` spans.
@@ -92,4 +95,5 @@ Links
    installation
    configuration
    usage
+   grouping
    otel-vs-sentry

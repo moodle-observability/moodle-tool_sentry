@@ -231,6 +231,13 @@ class helper {
             if (!self::$initialized) {
                 self::$initialized = true;
                 self::inject_sentry_js();
+                // Stable grouping for errors whose message changes on every event (session lock).
+                $sentryconfig['before_send'] = static function (
+                    \Sentry\Event $event,
+                    ?\Sentry\EventHint $hint = null
+                ): ?\Sentry\Event {
+                    return \tool_sentry\local\prepend::group_event($event, $hint ? $hint->exception : null);
+                };
                 \Sentry\init($sentryconfig);
 
                 // Enrich scope with task context when running as cron/adhoc.
@@ -311,18 +318,54 @@ class helper {
             return;
         }
 
-        $configjson = json_encode($config);
-        $code = "
-        (function() {
-            const script = document.createElement('script');
-            script.src = '$javascriptloader';
-            script.crossOrigin = 'anonymous';
-            script.onload = function() {
-                Sentry.init($configjson);
-            };
-            document.head.appendChild(script);
-        })();";
+        $PAGE->requires->js_init_code(self::get_js_init_code($javascriptloader, $config));
+    }
 
-        $PAGE->requires->js_init_code($code);
+    /**
+     * JavaScript that loads the Sentry Loader and starts the browser SDK.
+     *
+     * The beforeSend callback removes the JavaScript/theme revision from the URLs of the stack frames
+     * (lib/requirejs.php/<rev>/, lib/javascript.php/<rev>/, r.php/core/esm/<rev>/, theme/yui_combo.php?rollup/<rev>/).
+     * The revision changes on every purge of caches or upgrade, and Sentry groups browser errors by the stack trace:
+     * without this, the same error opens a new issue after each purge.
+     *
+     * @param string $javascriptloader URL of the Sentry JavaScript Loader.
+     * @param array $config Options of Sentry.init().
+     * @return string JavaScript code.
+     */
+    public static function get_js_init_code(string $javascriptloader, array $config): string {
+        $loaderjson = json_encode($javascriptloader, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES);
+        $configjson = json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES);
+        return <<<JS
+(function() {
+    var revision = /\\/(\\d{9,11})(?=[\\/_])/g;
+    function norevision(url) {
+        return typeof url === 'string' ? url.replace(revision, '/-') : url;
+    }
+    function beforesend(event) {
+        var values = (event.exception && event.exception.values) || [];
+        values.forEach(function(value) {
+            var frames = (value.stacktrace && value.stacktrace.frames) || [];
+            frames.forEach(function(frame) {
+                frame.filename = norevision(frame.filename);
+                if (frame.abs_path) {
+                    frame.abs_path = norevision(frame.abs_path);
+                }
+            });
+            value.value = norevision(value.value);
+        });
+        return event;
+    }
+    var script = document.createElement('script');
+    script.src = {$loaderjson};
+    script.crossOrigin = 'anonymous';
+    script.onload = function() {
+        var config = {$configjson};
+        config.beforeSend = beforesend;
+        Sentry.init(config);
+    };
+    document.head.appendChild(script);
+})();
+JS;
     }
 }

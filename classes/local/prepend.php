@@ -51,6 +51,12 @@ class prepend {
         'invalid_parameter_exception',
     ];
 
+    /**
+     * @var string[] Error codes whose message changes on every event (session id, timeout), which would split one
+     * problem into many Sentry issues. Events with these codes are grouped by exception class and error code only.
+     */
+    public const FINGERPRINT_ERRORCODES = ['sessioncannotobtainlock', 'sessionwaiterr'];
+
     /** @var string[] Request parameters whose values must never leave the server. */
     public const SENSITIVE_PARAMETERS = [
         'token', 'wstoken', 'password', 'senha', 'sesskey', 'key', 'secret', 'code', 'ticket',
@@ -303,6 +309,20 @@ class prepend {
     }
 
     /**
+     * Sets a stable fingerprint for exceptions whose message changes on every event (see FINGERPRINT_ERRORCODES).
+     *
+     * @param \Sentry\Event $event Event.
+     * @param \Throwable|null $exception Original exception.
+     * @return \Sentry\Event The same event.
+     */
+    public static function group_event(\Sentry\Event $event, ?\Throwable $exception): \Sentry\Event {
+        if ($exception instanceof \moodle_exception && in_array($exception->errorcode, self::FINGERPRINT_ERRORCODES, true)) {
+            $event->setFingerprint(['moodle_exception', get_class($exception), (string) $exception->errorcode]);
+        }
+        return $event;
+    }
+
+    /**
      * Enriches and cleans each event before it is sent.
      *
      * @param \Sentry\Event $event Event.
@@ -318,6 +338,7 @@ class prepend {
             $event->setTag('moodle_errorcode', (string) $exception->errorcode);
             $event->setTag('moodle_module', (string) $exception->module);
         }
+        self::group_event($event, $exception);
 
         self::task_context($event);
 
