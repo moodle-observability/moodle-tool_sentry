@@ -307,6 +307,11 @@ class helper {
     private static function inject_sentry_js(): void {
         global $PAGE;
 
+        // Browser SDK configured by environment variables: injected by the head hook, the Loader setting is not used.
+        if (\tool_sentry\local\browser::env_options() !== null) {
+            return;
+        }
+
         $config = get_config('tool_sentry');
         if (empty($config->activate) || empty($config->javascriptloader)) {
             return;
@@ -322,27 +327,43 @@ class helper {
     }
 
     /**
-     * JavaScript that loads the Sentry Loader and starts the browser SDK.
+     * JavaScript that loads the Sentry browser SDK (Loader or bundle) and starts it.
      *
-     * The beforeSend callback removes the JavaScript/theme revision from the URLs of the stack frames
-     * (lib/requirejs.php/<rev>/, lib/javascript.php/<rev>/, r.php/core/esm/<rev>/, theme/yui_combo.php?rollup/<rev>/).
-     * The revision changes on every purge of caches or upgrade, and Sentry groups browser errors by the stack trace:
-     * without this, the same error opens a new issue after each purge.
+     * - beforeSend removes the JavaScript/theme revision from the URLs of the stack frames
+     *   (lib/requirejs.php/<rev>/, lib/javascript.php/<rev>/, r.php/core/esm/<rev>/, theme/yui_combo.php?rollup/<rev>/).
+     *   The revision changes on every purge of caches or upgrade, and Sentry groups browser errors by the stack trace:
+     *   without this, the same error opens a new issue after each purge.
+     * - Values of sensitive URL parameters (SENSITIVE_PARAMETERS of the prepend class) are replaced with [Filtered] in
+     *   the event and in the breadcrumbs, and cookies and headers are removed from the request data.
+     * - Default ignoreErrors and denyUrls drop browser noise (network failures, extensions, tracking scripts, webviews);
+     *   values given in $config are kept and added to them.
      *
-     * @param string $javascriptloader URL of the Sentry JavaScript Loader.
+     * @param string $src URL of the Sentry JavaScript Loader or of the SDK bundle.
      * @param array $config Options of Sentry.init().
+     * @param int $userid Moodle user id sent with the events (0: none).
      * @return string JavaScript code.
      */
-    public static function get_js_init_code(string $javascriptloader, array $config): string {
-        $loaderjson = json_encode($javascriptloader, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES);
-        $configjson = json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES);
+    public static function get_js_init_code(string $src, array $config, int $userid = 0): string {
+        $flags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES;
+        $srcjson = json_encode($src, $flags);
+        $configjson = json_encode((object) $config, $flags);
+        $sensitive = implode('|', array_map(fn($p) => preg_quote($p, '/'), \tool_sentry\local\prepend::SENSITIVE_PARAMETERS));
         return <<<JS
 (function() {
     var revision = /\\/(\\d{9,11})(?=[\\/_])/g;
+    var sensitive = /([?&](?:{$sensitive})=)[^&#]*/gi;
     function norevision(url) {
         return typeof url === 'string' ? url.replace(revision, '/-') : url;
     }
+    function filter(url) {
+        return typeof url === 'string' ? url.replace(sensitive, '$1[Filtered]') : url;
+    }
     function beforesend(event) {
+        if (event.request) {
+            event.request.url = filter(event.request.url);
+            delete event.request.cookies;
+            delete event.request.headers;
+        }
         var values = (event.exception && event.exception.values) || [];
         values.forEach(function(value) {
             var frames = (value.stacktrace && value.stacktrace.frames) || [];
@@ -356,13 +377,34 @@ class helper {
         });
         return event;
     }
+    function beforebreadcrumb(breadcrumb) {
+        if (breadcrumb.data) {
+            ['url', 'from', 'to'].forEach(function(key) {
+                breadcrumb.data[key] = filter(breadcrumb.data[key]);
+            });
+        }
+        return breadcrumb;
+    }
     var script = document.createElement('script');
-    script.src = {$loaderjson};
+    script.src = {$srcjson};
     script.crossOrigin = 'anonymous';
     script.onload = function() {
+        if (!window.Sentry) {
+            return;
+        }
         var config = {$configjson};
+        config.sendDefaultPii = config.sendDefaultPii === true;
+        config.denyUrls = [/^(chrome|moz|safari|safari-web)-extension:\\/\\//i, /google-analytics\\.com/i,
+            /googletagmanager\\.com/i].concat(config.denyUrls || []);
+        config.ignoreErrors = ['ResizeObserver loop', 'Non-Error promise rejection captured', /^Script error\\.?$/,
+            /^(TypeError: )?Load failed/, /^(TypeError: )?Failed to fetch/, /NetworkError when attempting to fetch/,
+            /^out of memory$/i, /WebViewJavascriptBridge/, /Java bridge method/].concat(config.ignoreErrors || []);
         config.beforeSend = beforesend;
+        config.beforeBreadcrumb = beforebreadcrumb;
         Sentry.init(config);
+        if ({$userid} > 0) {
+            Sentry.setUser({id: String({$userid})});
+        }
     };
     document.head.appendChild(script);
 })();

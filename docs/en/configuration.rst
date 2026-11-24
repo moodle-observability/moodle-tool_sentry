@@ -150,3 +150,32 @@ Optional: exceptions thrown inside ``lib/setup.php`` (for example, with the data
    }
 
 To go back to the plugin mode, remove ``auto_prepend_file`` or unset ``SENTRY_DSN``.
+
+Browser SDK from environment variables
+--------------------------------------
+
+The ``javascriptloader`` setting starts the browser SDK through the Sentry JavaScript Loader, read from the database. Sites configured by environment variables (prepend mode) can do the same for the browser:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Variable
+     - Meaning
+   * - ``SENTRY_JS_DSN``
+     - DSN of the browser project (usually a different project from PHP). Required.
+   * - ``SENTRY_JS_SRC``
+     - URL of the SDK bundle (``bundle.min.js``) or of a JavaScript Loader. Required. It may be a file served by the site itself (for example ``https://moodle.example/sentry/bundle-<version>.min.js``), so that pages do not depend on the Sentry CDN.
+   * - ``SENTRY_JS_SAMPLE_RATE``
+     - Share of browser errors sent, from 0.0 to 1.0. Default 1.0.
+   * - ``SENTRY_ENVIRONMENT``, ``SENTRY_RELEASE``, ``SENTRY_SEND_USER_ID``
+     - The same values used by the PHP SDK.
+
+With both ``SENTRY_JS_DSN`` and ``SENTRY_JS_SRC`` set, the plugin adds the script to the ``<head>`` of every page (hook ``before_standard_head_html_generation``) and the ``javascriptloader`` setting is not used.
+
+In both modes the browser script:
+
+* replaces the values of sensitive URL parameters (``sesskey``, ``token``, ``wstoken``, ``password``, ``key``, ``secret``, ``code``, ``ticket``) with ``[Filtered]``, in the events and in the breadcrumbs, and removes cookies and headers from the request data;
+* removes the JavaScript revision from the stack frames (see :doc:`grouping`);
+* ignores browser noise: network failures (``Load failed``, ``Failed to fetch``), ``out of memory``, extensions, Google Analytics and Tag Manager, and Android/iOS webviews;
+* sends errors only from scripts of the site (``allowUrls`` = ``$CFG->wwwroot``), without personal data (``sendDefaultPii`` off); the numeric user id only with ``SENTRY_SEND_USER_ID=true``.

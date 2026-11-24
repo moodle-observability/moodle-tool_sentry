@@ -1,5 +1,19 @@
 # Changelog
 
+## 5.3.2 - 2026-11-24
+
+### Added
+- Browser SDK from environment variables: `SENTRY_JS_DSN` and `SENTRY_JS_SRC` (bundle or Loader URL, which may be
+  served by the site), plus `SENTRY_JS_SAMPLE_RATE`; `SENTRY_ENVIRONMENT`, `SENTRY_RELEASE` and `SENTRY_SEND_USER_ID`
+  are shared with PHP. Added to the page head by the `before_standard_head_html_generation` hook; when set, the
+  `javascriptloader` setting is not used (issue #41).
+- Documentation: "Browser SDK from environment variables" section in the configuration page.
+
+### Changed
+- Browser script (both modes): sensitive URL parameters are filtered in events and breadcrumbs, cookies and headers are
+  removed, personal data stays off, and default `ignoreErrors`/`denyUrls` drop network failures, extensions, tracking
+  scripts and webviews (issue #41).
+
 ## 5.3.1 - 2026-11-24
 
 ### Changed

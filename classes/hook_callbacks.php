@@ -33,4 +33,22 @@ class hook_callbacks {
     public static function after_config(\core\hook\after_config $hook): void {
         \tool_sentry\local\prepend::chain_handlers();
     }
+
+    /**
+     * Adds the browser SDK to the page head when it is configured by environment variables (SENTRY_JS_DSN).
+     *
+     * @param \core\hook\output\before_standard_head_html_generation $hook Hook.
+     * @return void
+     */
+    public static function before_standard_head_html_generation(
+        \core\hook\output\before_standard_head_html_generation $hook
+    ): void {
+        if (during_initial_install() || !empty($GLOBALS['CFG']->upgraderunning)) {
+            return;
+        }
+        $html = \tool_sentry\local\browser::head_html();
+        if ($html !== '') {
+            $hook->add_html($html);
+        }
+    }
 }
