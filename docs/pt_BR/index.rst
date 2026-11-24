@@ -35,6 +35,9 @@ A coluna ``tool_otel`` indica se o plugin `moodle-tool_otel <https://moodle-obse
    * - Erros de JavaScript do navegador, pelo JavaScript Loader do Sentry.
      - ✅
      - ❌
+   * - Agrupamento estável de issues: erros do navegador sem a revisão do JavaScript nas URLs, bloqueio de sessão sem o id da sessão (:doc:`grouping`).
+     - ✅
+     - ❌
    * - Tracing de desempenho.
      - ⚠️ Parcial: ativa o tracing do SDK (``enable_tracing``, ``traces_sample_rate``), sem spans do Moodle.
      - ⚠️ Parcial: spans de requisições, web services e tarefas, agregados do banco por requisição; sem spans de ``curl``.
@@ -92,4 +95,5 @@ Links
    installation
    configuration
    usage
+   grouping
    otel-vs-sentry

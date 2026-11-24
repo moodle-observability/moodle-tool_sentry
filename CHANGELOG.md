@@ -1,5 +1,19 @@
 # Changelog
 
+## 5.3.1 - 2026-11-24
+
+### Changed
+- Browser errors: the `beforeSend` of the injected `Sentry.init()` removes the JavaScript/theme revision from the
+  stack frame URLs (`lib/requirejs.php/<rev>/`, `lib/javascript.php/<rev>/`, `r.php/core/esm/<rev>/`,
+  `theme/yui_combo.php?rollup/<rev>/`) and from the error message. The same error no longer opens a new Sentry issue
+  after every purge of caches or upgrade (issue #39).
+- PHP errors: session lock timeouts (`sessioncannotobtainlock`, `sessionwaiterr`), whose message has the session id, get
+  one fingerprint (exception class and error code) in the prepend and plugin modes (issue #39).
+
+### Added
+- Documentation: "Issue grouping" page, with recommended Sentry fingerprinting rules for Moodle.
+- PHPUnit tests for the browser code and the session lock fingerprint.
+
 ## 5.3.0 - 2026-11-19
 
 New version line for **Moodle 5.3** only (`requires` 5.3, `supported` [503, 503], PHP 8.3+). Sites on Moodle 4.x keep

@@ -163,5 +163,24 @@ final class prepend_test extends \advanced_testcase {
         $this->assertSame('token=%5BFiltered%5D&id=1', $request['query_string']);
         $this->assertSame('https://moodle.example/login/token.php?token=%5BFiltered%5D&id=1', $request['url']);
         $this->assertNull($event->getUser());
+        $this->assertSame([], $event->getFingerprint());
+    }
+
+    /**
+     * Session lock errors, whose message has the session id, get one fingerprint for all sessions.
+     */
+    public function test_before_send_session_lock_fingerprint(): void {
+        $fingerprints = [];
+        foreach (['5c', 'e7'] as $id) {
+            $exception = new \moodle_exception('sessioncannotobtainlock', 'error', '', ['id' => 'session_' . $id]);
+            $event = prepend::before_send(
+                \Sentry\Event::createEvent(),
+                \Sentry\EventHint::fromArray(['exception' => $exception])
+            );
+            $fingerprints[] = $event->getFingerprint();
+        }
+        // On Moodle 5.x, moodle_exception is an alias of core\exception\moodle_exception.
+        $this->assertSame(['moodle_exception', get_class($exception), 'sessioncannotobtainlock'], $fingerprints[0]);
+        $this->assertSame($fingerprints[0], $fingerprints[1]);
     }
 }

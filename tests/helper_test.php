@@ -135,4 +135,20 @@ final class helper_test extends \advanced_testcase {
             restore_exception_handler();
         }
     }
+
+    /**
+     * The browser code loads the loader, keeps the options and removes the JavaScript revision from the frames.
+     */
+    public function test_get_js_init_code(): void {
+        $code = helper::get_js_init_code(
+            'https://js.sentry-cdn.com/abc.min.js',
+            ['dsn' => 'https://key@sentry.example/1', 'environment' => '</script>']
+        );
+        $this->assertStringContainsString('script.src = "https://js.sentry-cdn.com/abc.min.js";', $code);
+        $this->assertStringContainsString('"dsn":"https://key@sentry.example/1"', $code);
+        // Options cannot close the script tag.
+        $this->assertStringNotContainsString('</script>', $code);
+        $this->assertStringContainsString('config.beforeSend = beforesend;', $code);
+        $this->assertStringContainsString('var revision = /\/(\d{9,11})(?=[\/_])/g;', $code);
+    }
 }
