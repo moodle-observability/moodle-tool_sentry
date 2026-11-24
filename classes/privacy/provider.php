@@ -24,6 +24,7 @@
  */
 
 namespace tool_sentry\privacy;
+
 /**
  * Class provider to provide info of data shared
  * @author    Esdras Caleb
