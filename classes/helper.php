@@ -334,7 +334,8 @@ class helper {
      *   The revision changes on every purge of caches or upgrade, and Sentry groups browser errors by the stack trace:
      *   without this, the same error opens a new issue after each purge.
      * - Values of sensitive URL parameters (SENSITIVE_PARAMETERS of the prepend class) are replaced with [Filtered] in
-     *   the event and in the breadcrumbs, and cookies and headers are removed from the request data.
+     *   the event and in the breadcrumbs, and cookies and headers are removed from the request data, except the
+     *   User-Agent, which Sentry needs to show the browser and the operating system.
      * - Default ignoreErrors and denyUrls drop browser noise (network failures, extensions, tracking scripts, webviews);
      *   values given in $config are kept and added to them.
      *
@@ -362,7 +363,11 @@ class helper {
         if (event.request) {
             event.request.url = filter(event.request.url);
             delete event.request.cookies;
+            var useragent = event.request.headers && event.request.headers['User-Agent'];
             delete event.request.headers;
+            if (useragent) {
+                event.request.headers = {'User-Agent': useragent};
+            }
         }
         var values = (event.exception && event.exception.values) || [];
         values.forEach(function(value) {

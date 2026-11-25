@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.3.3 - 2026-11-25
+
+### Changed
+- Browser script: the `User-Agent` header is kept in the request data (the other headers and the cookies are still
+  removed), so Sentry shows the browser and the operating system of each error (issue #43).
+
 ## 5.3.2 - 2026-11-24
 
 ### Added

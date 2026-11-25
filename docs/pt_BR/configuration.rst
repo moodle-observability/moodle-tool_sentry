@@ -175,7 +175,7 @@ Com ``SENTRY_JS_DSN`` e ``SENTRY_JS_SRC`` definidas, o plugin acrescenta o scrip
 
 Nos dois modos, o script do navegador:
 
-* troca por ``[Filtered]`` o valor de parâmetros sensíveis das URLs (``sesskey``, ``token``, ``wstoken``, ``password``, ``key``, ``secret``, ``code``, ``ticket``), nos eventos e nas breadcrumbs, e tira cookies e cabeçalhos dos dados da requisição;
+* troca por ``[Filtered]`` o valor de parâmetros sensíveis das URLs (``sesskey``, ``token``, ``wstoken``, ``password``, ``key``, ``secret``, ``code``, ``ticket``), nos eventos e nas breadcrumbs, e tira cookies e cabeçalhos dos dados da requisição, menos o ``User-Agent``, de que o Sentry precisa para mostrar navegador e sistema operacional;
 * tira a revisão do JavaScript das pilhas (veja :doc:`grouping`);
 * ignora o ruído do navegador: falhas de rede (``Load failed``, ``Failed to fetch``), ``out of memory``, extensões, Google Analytics e Tag Manager, e webviews de Android/iOS;
 * envia só erros de scripts do site (``allowUrls`` = ``$CFG->wwwroot``), sem dados pessoais (``sendDefaultPii`` desligado); o id numérico do usuário só com ``SENTRY_SEND_USER_ID=true``.
