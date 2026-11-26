@@ -96,6 +96,7 @@ final class browser_test extends \advanced_testcase {
         $this->assertStringContainsString('script.src = "https://moodle.example/sentry/bundle.min.js";', $html);
         $this->assertStringContainsString('"dsn":"https://key@sentry.example/2"', $html);
         $this->assertStringContainsString('sesskey', $html);
+        $this->assertStringContainsString('if (!window.M || !window.M.util) {', $html);
         $this->assertStringContainsString('delete event.request.cookies;', $html);
         $this->assertStringContainsString("event.request.headers = {'User-Agent': useragent};", $html);
         $this->assertStringContainsString('config.beforeBreadcrumb = beforebreadcrumb;', $html);

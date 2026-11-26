@@ -336,6 +336,8 @@ class helper {
      * - Values of sensitive URL parameters (SENSITIVE_PARAMETERS of the prepend class) are replaced with [Filtered] in
      *   the event and in the breadcrumbs, and cookies and headers are removed from the request data, except the
      *   User-Agent, which Sentry needs to show the browser and the operating system.
+     * - Events of pages where the core scripts of Moodle did not load (no M.util) are dropped: every script of the
+     *   page fails there (M.util, YUI, requirejs undefined) and the cause is in the browser (network, blocker).
      * - Default ignoreErrors and denyUrls drop browser noise (network failures, extensions, tracking scripts, webviews);
      *   values given in $config are kept and added to them.
      *
@@ -360,6 +362,11 @@ class helper {
         return typeof url === 'string' ? url.replace(sensitive, '$1[Filtered]') : url;
     }
     function beforesend(event) {
+        // Without M.util (javascript-static.js, loaded in the head) the core scripts of Moodle did not load in this
+        // browser, and every script of the page fails: the error is in the client, not in the site.
+        if (!window.M || !window.M.util) {
+            return null;
+        }
         if (event.request) {
             event.request.url = filter(event.request.url);
             delete event.request.cookies;

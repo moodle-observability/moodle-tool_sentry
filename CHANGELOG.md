@@ -1,5 +1,12 @@
 # Changelog
 
+## 5.3.4 - 2026-11-26
+
+### Changed
+- Browser script: events of pages where the core scripts of Moodle did not load (no `M.util`) are dropped. On those
+  pages every script fails (`M.util`, `YUI` and `requirejs` undefined) and the cause is in the browser, such as a
+  network drop or a content blocker (issue #45).
+
 ## 5.3.3 - 2026-11-25
 
 ### Changed
