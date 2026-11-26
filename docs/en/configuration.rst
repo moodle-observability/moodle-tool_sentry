@@ -176,6 +176,7 @@ With both ``SENTRY_JS_DSN`` and ``SENTRY_JS_SRC`` set, the plugin adds the scrip
 In both modes the browser script:
 
 * replaces the values of sensitive URL parameters (``sesskey``, ``token``, ``wstoken``, ``password``, ``key``, ``secret``, ``code``, ``ticket``) with ``[Filtered]``, in the events and in the breadcrumbs, and removes cookies and headers from the request data, except the ``User-Agent``, which Sentry needs to show the browser and the operating system;
+* drops the events of pages where the core scripts of Moodle did not load (``M.util`` undefined): there every script of the page fails and the cause is in the browser (network drop, content blocker);
 * removes the JavaScript revision from the stack frames (see :doc:`grouping`);
 * ignores browser noise: network failures (``Load failed``, ``Failed to fetch``), ``out of memory``, extensions, Google Analytics and Tag Manager, and Android/iOS webviews;
 * sends errors only from scripts of the site (``allowUrls`` = ``$CFG->wwwroot``), without personal data (``sendDefaultPii`` off); the numeric user id only with ``SENTRY_SEND_USER_ID=true``.
