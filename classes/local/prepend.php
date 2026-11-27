@@ -29,6 +29,9 @@ namespace tool_sentry\local;
  *  - SENTRY_IGNORE_EXCEPTIONS: comma separated class names; replaces the default list.
  *  - SENTRY_SEND_USER_ID: "true" sends only the numeric id of the Moodle user (default false).
  *
+ * Events of a web request continue the trace received in the W3C traceparent header (for example created by the
+ * web server), so the same trace id is found in Sentry, in the web server logs and in the database.
+ *
  * @package    tool_sentry
  * @copyright  2026 Kelson da Costa Medeiros
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -61,6 +64,12 @@ class prepend {
     public const SENSITIVE_PARAMETERS = [
         'token', 'wstoken', 'password', 'senha', 'sesskey', 'key', 'secret', 'code', 'ticket',
     ];
+
+    /** @var string W3C traceparent, version 00: trace id (32 hex) and parent id (16 hex), both not all zeros. */
+    private const TRACEPARENT_REGEX = '/^00-(?!0{32})([0-9a-f]{32})-(?!0{16})([0-9a-f]{16})-[0-9a-f]{2}$/D';
+
+    /** @var string Sentry sentry-trace header: trace id, span id and the optional sampled flag. */
+    private const SENTRY_TRACE_REGEX = '/^(?!0{32})([0-9a-f]{32})-(?!0{16})([0-9a-f]{16})(?:-[01])?$/D';
 
     /** @var bool Whether this class started Sentry in the current request. */
     private static $active = false;
@@ -208,6 +217,16 @@ class prepend {
             }
         });
 
+        // Continue the trace of the request: the event's trace id is the one of the web server and the database.
+        $trace = self::trace_headers($_SERVER);
+        if ($trace !== null) {
+            \Sentry\continueTrace($trace[0], $trace[1]);
+            $traceid = substr($trace[0], 0, 32);
+            \Sentry\configureScope(static function (\Sentry\State\Scope $scope) use ($traceid): void {
+                $scope->setTag('trace_id', $traceid);
+            });
+        }
+
         // Fatal errors are captured by the SDK itself on shutdown. This runs after it and, if the response has not
         // started yet, exposes the event id to the web server error page.
         register_shutdown_function(static function (): void {
@@ -222,6 +241,44 @@ class prepend {
             }
         });
         return true;
+    }
+
+    /**
+     * Trace to continue, from the headers of the request.
+     *
+     * sentry-php only parses the sentry-trace header, so a valid W3C traceparent (version 00) is converted to it,
+     * without the sampled flag: the sampling stays with the options of this site. A sentry-trace header (sent by the
+     * browser SDK) is used, with its baggage, only when there is no traceparent or when both have the same trace id,
+     * so the trace id never differs from the one logged by the web server. Malformed headers are ignored.
+     *
+     * @param array $server Request variables ($_SERVER).
+     * @return array|null [sentry-trace, baggage], or null when the request brings no valid trace.
+     */
+    public static function trace_headers(array $server): ?array {
+        $traceparent = $server['HTTP_TRACEPARENT'] ?? '';
+        $sentrytrace = $server['HTTP_SENTRY_TRACE'] ?? '';
+        $w3c = is_string($traceparent) && preg_match(self::TRACEPARENT_REGEX, trim($traceparent), $tp);
+        $sentry = is_string($sentrytrace) && preg_match(self::SENTRY_TRACE_REGEX, trim($sentrytrace), $st);
+
+        if ($sentry && (!$w3c || $st[1] === $tp[1])) {
+            $baggage = $server['HTTP_BAGGAGE'] ?? '';
+            return [trim($sentrytrace), (is_string($baggage) && strlen($baggage) <= 8192) ? $baggage : ''];
+        }
+        if ($w3c) {
+            return [$tp[1] . '-' . $tp[2], ''];
+        }
+        return null;
+    }
+
+    /**
+     * Trace id of the current request, from its trace headers.
+     *
+     * @param array $server Request variables ($_SERVER).
+     * @return string 32 hexadecimal characters, or an empty string.
+     */
+    public static function trace_id(array $server): string {
+        $trace = self::trace_headers($server);
+        return $trace === null ? '' : substr($trace[0], 0, 32);
     }
 
     /**

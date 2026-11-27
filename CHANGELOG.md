@@ -1,5 +1,14 @@
 # Changelog
 
+## 5.3.5 - 2026-11-27
+
+### Added
+- Prepend mode: PHP events continue the trace of a valid W3C `traceparent` header (for example created by the web
+  server), converted to `sentry-trace` because sentry-php only parses that one, and get the `trace_id` tag. A
+  `sentry-trace` header (with its `baggage`) is used only when there is no `traceparent` or both have the same trace
+  id. Malformed headers are ignored (issue #47).
+- Browser SDK from environment variables: events of a page get the `trace_id` tag of the request that served it.
+
 ## 5.3.4 - 2026-11-26
 
 ### Changed

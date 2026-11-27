@@ -129,6 +129,8 @@ Neste modo, o plugin não inicia o SDK de novo e ignora as opções PHP da pági
 
 Opções fixas neste modo: o corpo das requisições nunca é enviado; nenhum dado pessoal é enviado por padrão; os valores de parâmetros sensíveis (``token``, ``wstoken``, ``password``, ``sesskey``, ``key``, ``secret``, ``code``, ``ticket``...) viram ``[Filtered]``; os eventos recebem tags com o componente do Moodle, o código do erro e a tarefa em execução.
 
+Continuação do trace (a partir da 5.3.5): quando a requisição traz um cabeçalho W3C ``traceparent`` válido (versão ``00``), por exemplo criado pelo servidor web, os eventos do PHP continuam esse trace. O trace id é o mesmo no Sentry (busque ``trace:<id>`` ou a tag ``trace_id``), nos logs do servidor web e onde mais o cabeçalho for registrado. O sentry-php só lê ``sentry-trace``, por isso o plugin converte o cabeçalho; a amostragem continua com este site. Um cabeçalho ``sentry-trace`` (com o seu ``baggage``) só é usado no lugar quando não há ``traceparent`` ou os dois têm o mesmo trace id. Cabeçalhos malformados são ignorados. Com o SDK do navegador por variáveis de ambiente, os eventos da página recebem a tag ``trace_id`` da requisição que a serviu.
+
 As variáveis precisam chegar ao PHP:
 
 * **PHP-FPM**: ``clear_env = no`` no pool, ou ``env[SENTRY_DSN] = ...`` (ou ``fastcgi_param SENTRY_DSN ...`` no nginx).

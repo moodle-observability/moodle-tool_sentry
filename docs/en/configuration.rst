@@ -129,6 +129,8 @@ In this mode the plugin does not start the SDK again and ignores the PHP options
 
 Fixed options in this mode: request bodies are never sent; no personal data is sent by default; the values of sensitive parameters (``token``, ``wstoken``, ``password``, ``sesskey``, ``key``, ``secret``, ``code``, ``ticket``...) are replaced with ``[Filtered]``; events are tagged with the Moodle component, the error code and the running task.
 
+Trace continuation (from 5.3.5): when the request has a valid W3C ``traceparent`` header (version ``00``), for example created by the web server, PHP events continue that trace. The trace id is the same in Sentry (search ``trace:<id>`` or the ``trace_id`` tag), in the web server logs and wherever else the header is logged. sentry-php only reads ``sentry-trace``, so the plugin converts the header; the sampling stays with this site. A ``sentry-trace`` header (with its ``baggage``) is used instead only when there is no ``traceparent`` or both have the same trace id. Malformed headers are ignored. With the browser SDK from environment variables, the events of the page get the ``trace_id`` tag of the request that served it.
+
 The variables must reach PHP:
 
 * **PHP-FPM**: ``clear_env = no`` in the pool, or ``env[SENTRY_DSN] = ...`` (or ``fastcgi_param SENTRY_DSN ...`` in nginx).
