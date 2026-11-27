@@ -55,6 +55,11 @@ class browser {
         if ($release !== '') {
             $options['release'] = $release;
         }
+        // Trace id of the request that served the page: JavaScript errors of the page can be found with it.
+        $traceid = prepend::trace_id($_SERVER);
+        if ($traceid !== '') {
+            $options['initialScope'] = ['tags' => ['trace_id' => $traceid]];
+        }
         $userid = 0;
         if (prepend::env('SENTRY_SEND_USER_ID') === 'true' && isloggedin() && !isguestuser()) {
             $userid = (int) $USER->id;

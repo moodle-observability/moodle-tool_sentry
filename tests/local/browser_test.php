@@ -82,6 +82,16 @@ final class browser_test extends \advanced_testcase {
 
         putenv('SENTRY_SEND_USER_ID=true');
         $this->assertSame((int) $user->id, browser::env_options()['userid']);
+
+        // Trace id of the request as a tag of the browser events.
+        $this->assertArrayNotHasKey('initialScope', $config['options']);
+        $_SERVER['HTTP_TRACEPARENT'] = '00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01';
+        try {
+            $expected = ['tags' => ['trace_id' => '4bf92f3577b34da6a3ce929d0e0e4736']];
+            $this->assertSame($expected, browser::env_options()['options']['initialScope']);
+        } finally {
+            unset($_SERVER['HTTP_TRACEPARENT']);
+        }
     }
 
     /**

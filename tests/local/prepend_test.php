@@ -183,4 +183,46 @@ final class prepend_test extends \advanced_testcase {
         $this->assertSame(['moodle_exception', get_class($exception), 'sessioncannotobtainlock'], $fingerprints[0]);
         $this->assertSame($fingerprints[0], $fingerprints[1]);
     }
+
+    /**
+     * W3C traceparent is converted to sentry-trace; malformed headers are ignored.
+     */
+    public function test_trace_headers(): void {
+        $trace = '4bf92f3577b34da6a3ce929d0e0e4736';
+        $span = '00f067aa0ba902b7';
+        $tp = "00-{$trace}-{$span}-01";
+
+        $this->assertSame(["{$trace}-{$span}", ''], prepend::trace_headers(['HTTP_TRACEPARENT' => $tp]));
+        $this->assertSame($trace, prepend::trace_id(['HTTP_TRACEPARENT' => " {$tp} "]));
+        $this->assertNull(prepend::trace_headers([]));
+        $this->assertSame('', prepend::trace_id([]));
+
+        // Malformed: other version, upper case, all-zero ids, wrong sizes, header injection, not a string.
+        $invalid = [
+            "01-{$trace}-{$span}-01",
+            strtoupper($tp),
+            '00-' . str_repeat('0', 32) . "-{$span}-01",
+            "00-{$trace}-" . str_repeat('0', 16) . '-01',
+            "00-{$trace}-{$span}",
+            "00-{$trace}a-{$span}-01",
+            "{$tp}\nX-Injected: 1",
+            ['array'],
+        ];
+        foreach ($invalid as $value) {
+            $this->assertNull(prepend::trace_headers(['HTTP_TRACEPARENT' => $value]));
+        }
+
+        // A sentry-trace header (browser SDK) is used with its baggage when there is no traceparent or the trace is
+        // the same.
+        $sentry = "{$trace}-1234567890abcdef-1";
+        $baggage = 'sentry-trace_id=' . $trace;
+        $headers = ['HTTP_SENTRY_TRACE' => $sentry, 'HTTP_BAGGAGE' => $baggage];
+        $this->assertSame([$sentry, $baggage], prepend::trace_headers($headers));
+        $this->assertSame([$sentry, $baggage], prepend::trace_headers($headers + ['HTTP_TRACEPARENT' => $tp]));
+
+        // Different trace ids: the traceparent wins, so the id is the one logged by the web server.
+        $headers = ['HTTP_TRACEPARENT' => $tp, 'HTTP_SENTRY_TRACE' => str_repeat('a', 32) . '-1234567890abcdef'];
+        $this->assertSame(["{$trace}-{$span}", ''], prepend::trace_headers($headers));
+        $this->assertNull(prepend::trace_headers(['HTTP_SENTRY_TRACE' => 'not-a-trace']));
+    }
 }
